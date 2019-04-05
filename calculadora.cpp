@@ -17,6 +17,10 @@ double quitarPilaNumeros(void);
 void agregarPilaOperadores(char);	
 char quitarPilaOperadores(char);
 
+int parentesisApertura;
+int parentesisCierre;
+
+	
 int main(int argc, char** argv) {
 	
 	printf("Calculadora infija a postfija\n \n");
@@ -28,18 +32,34 @@ int main(int argc, char** argv) {
 
 	
 	while((tipo = obtenerOperacion(ecuacion)) != EOF){
-		 switch (tipo) {
-			case ESNUMERO:
-				agregarPilaNumeros(atof(ecuacion));
-				break;
-			case '+':
-				agregarPilaOperadores(tipo);
-				break;
-			case '*':
-				printf("es un signo multiplicacion \n");
-				break;
-      }
-  }
+		if((parentesisApertura - parentesisCierre) < 0 ) {
+			printf("Ecuacion no valida, revisa los parentesis");
+		} else {
+				switch (tipo) {
+					case ESNUMERO:
+						agregarPilaNumeros(atof(ecuacion));
+						break;
+					case '(':
+						agregarPilaOperadores('(');
+						parentesisApertura++;	
+						break;
+					case ')':
+						agregarPilaOperadores(')');
+						parentesisCierre++; 
+						break;
+					case '+':
+						agregarPilaOperadores('+');
+						
+						
+
+						break;
+					case '*':
+						printf("es un signo multiplicacion \n");
+						break;
+							printf("Si se puede procesar la ecuacion");
+				}
+		}
+	}
 	
 	return 0;
 }
@@ -82,16 +102,14 @@ int getch(void)
 void ungetch(int c)
 {
   if (pbuf >= BUFFER)
-    printf("ungetch: demasiados caracteres, se agoto el buffer\n");
+    printf("demasiados caracteres\n");
   else
     buf[pbuf++] = c;
 }
 
 
 int indicePilaNumeros = 0;
-int indicePilaOperandores = 0;
 double pilaNumeros[LONGITUDOPERACIONMAX];
-char pilaOperadores[LONGITUDOPERACIONMAX];
 
 void agregarPilaNumeros(double numero){
 	if(indicePilaNumeros < LONGITUDOPERACIONMAX){
@@ -103,10 +121,25 @@ void agregarPilaNumeros(double numero){
 	}
 }
 
+double quitarPilaNumeros(){
+	if(indicePilaNumeros > 0 ){
+		return pilaNumeros[indicePilaNumeros];
+		indicePilaNumeros--;
+	} else {
+		printf("pila vacia \n");
+		return 0.00;
+	}
+}
+
+
+int indicePilaOperandores = 0;
+char pilaOperadores[LONGITUDOPERACIONMAX];
+
 void agregarPilaOperadores(char operador){
+
 	if(indicePilaOperandores < LONGITUDOPERACIONMAX){
 		pilaOperadores[indicePilaOperandores] = operador;
-		printf("se agrego un operador a la pila \n");
+		printf("se agrego el operador %c a la pocicio %i de la pila \n",operador,indicePilaOperandores);
 		indicePilaOperandores ++;
 	} else {
 			printf("Ha ocurrido un error, la pila ya esta llena \n ");
