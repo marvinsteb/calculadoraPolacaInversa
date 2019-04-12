@@ -2,7 +2,7 @@
 #include <stdlib.h> /* para usar atof() */
 #include <ctype.h>
 #include <string>
-
+#include <math.h>
 
 #define LONGITUDOPERACIONMAX 100
 #define ESNUMERO '0'
@@ -40,24 +40,13 @@ int main(int argc, char** argv) {
 
 	int tipo;
 	double operacionTemporal;
-	char ecuacion[LONGITUDOPERACIONMAX];
+	char ecuacion[LONGITUDOPERACIONMAX]; 	
 
-	
+
 	while((tipo = obtenerOperacion(ecuacion)) != EOF){
 		if((parentesisApertura - parentesisCierre) < 0 ) {
 			printf("Ecuacion no valida, revisa los parentesis");
 		} else {
-				if(parentesisApertura > 0 && parentesisCierre > 0 && indicePilaNumeros > 0 ) {
-					// ya se puede operar la ecuacion 
-					// printf("ya se puede operar la ecuacion \n\n");
-					  char signo = quitarPilaOperadores();
-						while(signo !='('){
-							if (signo !='(' && signo != ')') {
-									calcular(quitarPilaNumeros(),quitarPilaNumeros(),signo);
-							}
-							signo = quitarPilaOperadores();
-						}				
-				} 
 					switch (tipo) {
 						case ESNUMERO:
 							agregarPilaNumeros(atof(ecuacion));
@@ -82,11 +71,30 @@ int main(int argc, char** argv) {
 						case '/':
 							agregarPilaOperadores('/');
 							break;
-					}
-		
-			
-		}
+						case '^':
+							agregarPilaOperadores('^');
+							break;
+					}	
 
+					if(parentesisApertura > 0 && parentesisCierre > 0 && indicePilaNumeros > 0 ) {
+									// ya se puede operar la ecuacion 
+									// printf("ya se puede operar la ecuacion \n\n");
+										char signo = quitarPilaOperadores();
+										while(signo !='('){
+											if (signo !='(' && signo != ')') {
+													calcular(quitarPilaNumeros(),quitarPilaNumeros(),signo);
+											}else{
+												if(signo =='('){
+													parentesisApertura--;
+												} 
+												if(signo == ')') {
+													parentesisCierre--;
+												}
+											}
+											signo = quitarPilaOperadores();
+										}				
+					} 
+		}
 	}
 
 	
@@ -102,27 +110,30 @@ void calcular(double numero1 , double numero2 , char signo){
 				printf("sumando %f \n",resultado);
 				agregarPilaNumeros(resultado);
 				break;
-				case '-':
+			case '-':
 				resultado = numero1 - numero2;
 				printf("restando %f \n",resultado);
 				agregarPilaNumeros(resultado);
 				break;
-				case '*':
+			case '*':
 				resultado = numero1 * numero2;
 				printf("multiplicando %f \n",resultado);
 				agregarPilaNumeros(resultado);
 				break;
-				case '/':
+			case '/':
 				if(numero2 != 0){
 				resultado = numero1 / numero2;
 				printf("dividiendo %f \n",resultado);
 				agregarPilaNumeros(resultado);
 				} else {
-					printf('No se puede dividir entre cero \n');
+					printf("No se puede dividir entre cero \n");
 				}
 				break;
-			default:
-				break;
+			case '^':
+				resultado = pow(numero1,numero2);
+				agregarPilaNumeros(resultado);
+				break;	
+		
 		}
 } 
 /*
@@ -144,22 +155,10 @@ int obtenerOperacion(char ecuacion[]){
 			;			
 		ecuacion[indice] = '\0';
 		if (caracter != EOF)
+		printf("termina la cadena");
 			ungetch(caracter);
 	return ESNUMERO;
 }
-
-
-/* void balanceoDeSimbolos(char ecuacion[]){
-	int indice = 0;
-	printf("desde balanceo de simbolos");
-	printf(ecuacion);
-  		while(ecuacion[indice] != '\0'){
-			printf(" %i\n",indice);
-			indice++;
-		} 
-}
- */
-
 
 #define BUFFER 100		
 
@@ -182,7 +181,7 @@ void ungetch(int c) {
 void agregarPilaNumeros(double numero){
 	if(indicePilaNumeros < LONGITUDOPERACIONMAX){
 	pilaNumeros[indicePilaNumeros] = numero;
-	printf("Se agrego el numero %f en la pocicion %i de la pila de numeros\n", 	pilaNumeros[indicePilaNumeros] ,indicePilaNumeros);
+	printf("Agregando a la pila de numeros    %.2f	en la pocicion %i\n", 	pilaNumeros[indicePilaNumeros] ,indicePilaNumeros);
 	indicePilaNumeros++;
 	}  else {
 			printf("Ha ocurrido un error, la pila ya esta llena \n ");
@@ -190,7 +189,6 @@ void agregarPilaNumeros(double numero){
 }
 
 double quitarPilaNumeros(){
-	printf(" el indice de los numeros es %i \n",indicePilaNumeros);
 	if(indicePilaNumeros > 0 ){
 		indicePilaNumeros--;
 		return pilaNumeros[indicePilaNumeros];
@@ -203,7 +201,7 @@ double quitarPilaNumeros(){
 void agregarPilaOperadores(char operador){
 	if(indicePilaOperandores < LONGITUDOPERACIONMAX){
 		pilaOperadores[indicePilaOperandores] = operador;
-		printf("se agrego el operador %c a la pocicio %i de la pila de operadores \n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
+		printf("Agregando a la pila de operadores %c	a la pocicio %i\n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
 		indicePilaOperandores ++;
 	} else {
 			printf("Ha ocurrido un error, la pila ya esta llena \n ");
