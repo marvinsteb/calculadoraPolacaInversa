@@ -6,6 +6,7 @@
 
 #define LONGITUDOPERACIONMAX 100
 #define ESNUMERO '0'
+//(52.87+20)*8
 
 int obtenerOperacion(char[]);
 int getch(void);
@@ -14,6 +15,7 @@ void ungetch(int);
 /*funciones */
 void agregarPilaNumeros(double);
 double quitarPilaNumeros(void);
+void evaluarPilaParaOperar(void);
 
 void agregarPilaOperadores(char);	
 char quitarPilaOperadores(void);
@@ -31,8 +33,9 @@ double pilaNumeros[LONGITUDOPERACIONMAX];
 
 int parentesisApertura;
 int parentesisCierre;
-
-	
+int error = 0;
+int cantidadNumeros;
+int cantidadSignos;	
 int main(int argc, char** argv) {
 	
 	printf("Calculadora infija a postfija\n \n");
@@ -42,65 +45,70 @@ int main(int argc, char** argv) {
 	double operacionTemporal;
 	char ecuacion[LONGITUDOPERACIONMAX]; 	
 
-
-	while((tipo = obtenerOperacion(ecuacion)) != EOF){
-		if((parentesisApertura - parentesisCierre) < 0 ) {
-			printf("Ecuacion no valida, revisa los parentesis");
-		} else {
-					switch (tipo) {
-						case ESNUMERO:
-							agregarPilaNumeros(atof(ecuacion));
-							break;
-						case '(':
-							agregarPilaOperadores('(');
-							parentesisApertura++;	
-							break;
-						case ')':
-							agregarPilaOperadores(')');
-							parentesisCierre++; 
-							break;
-						case '+':
-							agregarPilaOperadores('+');
-							break;
-						case '-':
-							agregarPilaOperadores('-');
-							break;
-						case '*':
-							agregarPilaOperadores('*');
-							break;
-						case '/':
-							agregarPilaOperadores('/');
-							break;
-						case '^':
-							agregarPilaOperadores('^');
-							break;
-					}	
-
-					if(parentesisApertura > 0 && parentesisCierre > 0 && indicePilaNumeros > 0 ) {
-									// ya se puede operar la ecuacion 
-									// printf("ya se puede operar la ecuacion \n\n");
-										char signo = quitarPilaOperadores();
-										while(signo !='('){
-											if (signo !='(' && signo != ')') {
-													calcular(quitarPilaNumeros(),quitarPilaNumeros(),signo);
-											}else{
-												if(signo =='('){
-													parentesisApertura--;
-												} 
-												if(signo == ')') {
-													parentesisCierre--;
-												}
-											}
-											signo = quitarPilaOperadores();
-										}				
-					} 
+	agregarPilaOperadores('(');
+	
+	while(error == 0){
+		tipo = obtenerOperacion(ecuacion);
+		if(tipo == '\n'){
+				agregarPilaOperadores(')');
 		}
+		if(tipo != EOF){
+							switch (tipo) {
+								case ESNUMERO:
+									agregarPilaNumeros(atof(ecuacion));
+									break;
+								case '(':
+									agregarPilaOperadores('(');
+									break;
+								case ')':
+									agregarPilaOperadores(')');					
+									break;
+								case '+':
+									agregarPilaOperadores('+');
+									break;
+								case '-':
+									agregarPilaOperadores('-');
+									break;
+								case '*':
+									agregarPilaOperadores('*');
+									break;
+								case '/':
+									agregarPilaOperadores('/');
+									break;
+								case '^':
+									agregarPilaOperadores('^');
+									break;
+							}	
+		}
+
+
 	}
 
 	
 	return 0;
 }
 
+void evaluarPilaParaOperar(){
+				
+									if(parentesisApertura > 0 && parentesisCierre > 0 && indicePilaNumeros > 0 ) {						
+											// ya se puede operar la ecuacion 
+											// printf("ya se puede operar la ecuacion \n\n");
+									char signo = quitarPilaOperadores();
+										while(signo !='('){
+												if (signo !='(' && signo != ')' && (parentesisApertura-parentesisCierre) >= 0) {
+													calcular(quitarPilaNumeros(),quitarPilaNumeros(),signo);
+												}else{
+													/* 	if(signo =='('){
+															parentesisApertura--;
+														} 
+														if(signo == ')') {
+															parentesisCierre--;
+														} */
+												}
+													signo = quitarPilaOperadores();
+										}
+								}
+}
 void calcular(double numero1 , double numero2 , char signo){
 	double resultado = 0.00;
 		switch (signo)
@@ -141,22 +149,19 @@ void calcular(double numero1 , double numero2 , char signo){
  */
 int obtenerOperacion(char ecuacion[]){
 	 int indice,caracter;
-
-			while ((ecuacion[0] = caracter = getch()) == ' ' || caracter == '\t');
+		while ((ecuacion[0] = caracter = getch()) == ' ' || caracter == '\t');
 		ecuacion[1] = '\0';
 		if (!isdigit(caracter) && caracter != '.')
 			return caracter;		
 		indice = 0;
 		if (isdigit(caracter))
-			while(isdigit(ecuacion[++indice] = caracter = getch()))
-			;		
+			while(isdigit(ecuacion[++indice] = caracter = getch()));		
 		if (caracter == '.')		
-			while (isdigit(ecuacion[++indice] = caracter = getch()))
-			;			
+			while (isdigit(ecuacion[++indice] = caracter = getch()));			
 		ecuacion[indice] = '\0';
-		if (caracter != EOF)
-		printf("termina la cadena");
+		if (caracter != EOF){
 			ungetch(caracter);
+		}
 	return ESNUMERO;
 }
 
@@ -194,6 +199,7 @@ double quitarPilaNumeros(){
 		return pilaNumeros[indicePilaNumeros];
 	} else {
 		printf("pila de numeros vacia \n");
+		error++;
 		return 0.00;
 	}
 }
@@ -207,6 +213,24 @@ void agregarPilaOperadores(char operador){
 			printf("Ha ocurrido un error, la pila ya esta llena \n ");
 	}
 
+	if(operador == '('){
+		parentesisApertura++;
+	} else {
+			if(operador == ')'){
+				parentesisCierre++; 
+	
+	                if(parentesisApertura-parentesisCierre < 0){
+										printf("hay un eror con los parentesis \n\n");
+										error++;
+									} else {
+												evaluarPilaParaOperar();
+									}
+		} else {
+			cantidadSignos++;
+		}
+
+	}
+		
 }
 char quitarPilaOperadores(){
 	if(indicePilaOperandores > 0 ){
@@ -214,6 +238,7 @@ char quitarPilaOperadores(){
 		return pilaOperadores[indicePilaOperandores];	
 	} else {
 		printf("pila de signos vacia \n");
+			error++;
 		return 'V';
 	}
 };
