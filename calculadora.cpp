@@ -17,7 +17,7 @@ void agregarPilaNumeros(double);
 double quitarPilaNumeros(void);
 void evaluarPilaParaOperar(void);
 
-void agregarPilaOperadores(char);	
+void agregarPilaOperadores(char,int);	
 char quitarPilaOperadores(void);
 
 void calcular(double,double,char);
@@ -25,6 +25,7 @@ void calcular(double,double,char);
 /*variables para pilas*/
 
 int indicePilaOperandores = 0;
+int precedenciaPilaOperadores = 0;
 char pilaOperadores[LONGITUDOPERACIONMAX];
 
 int indicePilaNumeros = 0;
@@ -45,12 +46,12 @@ int main(int argc, char** argv) {
 	double operacionTemporal;
 	char ecuacion[LONGITUDOPERACIONMAX]; 	
 
-	agregarPilaOperadores('(');
+	agregarPilaOperadores('(',4);
 	
 	while(error == 0){
 		tipo = obtenerOperacion(ecuacion);
 		if(tipo == '\n'){
-				agregarPilaOperadores(')');
+				agregarPilaOperadores(')',4);
 		}
 		if(tipo != EOF){
 							switch (tipo) {
@@ -58,25 +59,25 @@ int main(int argc, char** argv) {
 									agregarPilaNumeros(atof(ecuacion));
 									break;
 								case '(':
-									agregarPilaOperadores('(');
+									agregarPilaOperadores('(',4);
 									break;
 								case ')':
-									agregarPilaOperadores(')');					
+									agregarPilaOperadores(')',4);					
 									break;
 								case '+':
-									agregarPilaOperadores('+');
+									agregarPilaOperadores('+',3);
 									break;
 								case '-':
-									agregarPilaOperadores('-');
+									agregarPilaOperadores('-',3);
 									break;
 								case '*':
-									agregarPilaOperadores('*');
+									agregarPilaOperadores('*',2);
 									break;
 								case '/':
-									agregarPilaOperadores('/');
+									agregarPilaOperadores('/',2);
 									break;
 								case '^':
-									agregarPilaOperadores('^');
+									agregarPilaOperadores('^',1);
 									break;
 							}	
 		}
@@ -204,11 +205,40 @@ double quitarPilaNumeros(){
 	}
 }
 
-void agregarPilaOperadores(char operador){
+void agregarPilaOperadores(char operador,int precedencia){
 	if(indicePilaOperandores < LONGITUDOPERACIONMAX){
-		pilaOperadores[indicePilaOperandores] = operador;
-		printf("Agregando a la pila de operadores %c	a la pocicio %i\n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
-		indicePilaOperandores ++;
+			  if(operador !='(' && operador != ')'){
+										cantidadSignos++;
+							 			
+										if(precedenciaPilaOperadores < precedencia && cantidadSignos > 1) {
+
+
+											char signoTemporal = quitarPilaOperadores();
+											printf("quitando temporalmente signo de mayor presedecia %c	a la pocicio %i\n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
+											calcular(quitarPilaNumeros(),quitarPilaNumeros(),signoTemporal);	
+											pilaOperadores[indicePilaOperandores] = operador;
+											printf("agregando signo de menor presedecia %c	a la pocicio %i\n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
+											indicePilaOperandores ++;
+											precedenciaPilaOperadores = precedencia;
+										} else {
+												
+													pilaOperadores[indicePilaOperandores] = operador;
+													printf("*Agregando a la pila de operadores %c	a la pocicio %i\n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
+													indicePilaOperandores ++;
+												precedenciaPilaOperadores = precedencia;
+										}
+
+							/*			
+										} else {
+										}	
+										 */
+				} else {
+									pilaOperadores[indicePilaOperandores] = operador;
+									printf("Agregando a la pila de operadores %c	a la pocicio %i\n",pilaOperadores[indicePilaOperandores],indicePilaOperandores);
+									indicePilaOperandores ++;
+				}
+
+
 	} else {
 			printf("Ha ocurrido un error, la pila ya esta llena \n ");
 	}
